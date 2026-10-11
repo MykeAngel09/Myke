@@ -1,0 +1,1828 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DailyBudget (Car Maintenance & Control) — Demo</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --panel:#f7f9fc;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#e5e7eb;
+      --brand:#0b3d91; /* dark blue */
+      --brand2:#0ea55f; /* green */
+      --danger:#dc2626;
+      --warn:#f59e0b;
+      --ok:#16a34a;
+      --shadow: 0 10px 30px rgba(2,6,23,.08);
+      --radius: 16px;
+    }
+    [data-theme="dark"]{
+      --bg:#0b1220;
+      --panel:#0f1a2f;
+      --text:#e5e7eb;
+      --muted:#93a4bd;
+      --border:#22324f;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --brand:#5aa1ff;
+      --brand2:#22c55e;
+    }
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:var(--bg); color:var(--text);
+    }
+    a{color:inherit}
+    .wrap{max-width:1200px; margin:0 auto; padding:18px;}
+    .app-shell{
+      display:grid; grid-template-columns: 260px 1fr; gap:16px;
+    }
+    .sidebar{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow: var(--shadow);
+      position: sticky; top: 16px; height: calc(100vh - 32px);
+      display:flex; flex-direction:column;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; padding:6px 4px 12px;
+      border-bottom:1px dashed var(--border);
+      margin-bottom:12px;
+    }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: linear-gradient(135deg, var(--brand), #1d4ed8);
+      display:grid; place-items:center; color:white; font-weight:800;
+    }
+    .nav{
+      display:flex; flex-direction:column; gap:8px; padding:10px 0;
+    }
+    .nav button{
+      width:100%; text-align:left;
+      background:transparent; border:1px solid transparent; color:var(--text);
+      padding:10px 10px; border-radius:12px; cursor:pointer;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .nav button:hover{background: rgba(59,130,246,.08); border-color: rgba(59,130,246,.2);}
+    .nav button.active{background: rgba(59,130,246,.12); border-color: rgba(59,130,246,.35);}
+    .sidebar .footer{
+      margin-top:auto; padding-top:12px; border-top:1px dashed var(--border);
+      display:flex; gap:10px; justify-content:space-between; align-items:center;
+    }
+    .main{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+      min-height: calc(100vh - 32px);
+    }
+    .topbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .title{font-size:18px; font-weight:800;}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border); border-radius:999px; padding:8px 12px;
+      color:var(--muted); background: rgba(255,255,255,.02);
+    }
+    [data-theme="dark"] .chip{background: rgba(0,0,0,.15);}
+    .grid{
+      display:grid; gap:12px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .card{
+      background: var(--bg);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding:14px;
+      grid-column: span 4;
+    }
+    .card.wide{grid-column: span 6;}
+    .card.full{grid-column: span 12;}
+    .kpi-label{color:var(--muted); font-size:12px;}
+    .kpi-value{font-size:22px; font-weight:900; margin-top:6px;}
+    .pill{
+      padding:4px 10px; border-radius:999px; border:1px solid var(--border);
+      font-size:12px; display:inline-flex; align-items:center; gap:8px;
+      background: rgba(2,6,23,.02);
+    }
+    [data-theme="dark"] .pill{background: rgba(255,255,255,.03);}
+    .dot{width:8px; height:8px; border-radius:50%; background: var(--muted);}
+    .dot.ok{background:var(--ok);}
+    .dot.warn{background:var(--warn);}
+    .dot.danger{background:var(--danger);}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .btn{
+      border:1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, var(--brand), #1d4ed8);
+      border-color: transparent; color:white;
+    }
+    .btn.green{
+      background: linear-gradient(135deg, var(--brand2), #16a34a);
+      border-color: transparent; color:white;
+    }
+    .btn.danger{
+      border-color: rgba(220,38,38,.4);
+      color: var(--danger);
+      background: rgba(220,38,38,.08);
+    }
+    .btn:disabled{opacity:.6; cursor:not-allowed;}
+    .form{
+      display:grid; gap:10px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .field{grid-column: span 6;}
+    .field.span4{grid-column: span 4;}
+    .field.span3{grid-column: span 3;}
+    .field.span12{grid-column: span 12;}
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px;}
+    input, select, textarea{
+      width:100%; padding:10px 12px; border-radius:12px;
+      border:1px solid var(--border); background: rgba(255,255,255,.6);
+      color: var(--text); outline:none;
+    }
+    [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea{
+      background: rgba(0,0,0,.18);
+    }
+    textarea{min-height:88px; resize: vertical;}
+    .table{
+      width:100%; border-collapse: collapse;
+      overflow:auto;
+    }
+    .table th, .table td{
+      border-bottom:1px solid var(--border);
+      padding:10px 8px; font-size:13px; text-align:left;
+      vertical-align:top;
+    }
+    .table th{color:var(--muted); font-weight:800; font-size:12px;}
+    .right{margin-left:auto}
+    .muted{color:var(--muted);}
+    .danger-text{color:var(--danger); font-weight:800;}
+    .success-text{color:var(--ok); font-weight:800;}
+    .notice{
+      padding:12px; border-radius:14px; border:1px solid var(--border);
+      background: rgba(59,130,246,.06);
+      color: var(--text);
+    }
+    .notice.warn{background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.35);}
+    .notice.danger{background: rgba(220,38,38,.10); border-color: rgba(220,38,38,.35);}
+    .notice.ok{background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.35);}
+    .progress{
+      height:10px; border-radius:999px; background: rgba(148,163,184,.25);
+      border:1px solid var(--border); overflow:hidden;
+      margin-top:10px;
+    }
+    .bar{height:100%; width:0%; background: linear-gradient(90deg, var(--brand), #22c55e);}
+    .bar.warn{background: linear-gradient(90deg, #f59e0b, #f97316);}
+    .bar.danger{background: linear-gradient(90deg, #dc2626, #ef4444);}
+    .auth-wrap{
+      max-width: 520px; margin: 0 auto; padding: 30px 16px;
+    }
+    .hero{
+      display:flex; flex-direction:column; gap:12px;
+      padding:18px; border:1px solid var(--border); border-radius: var(--radius);
+      background: var(--panel); box-shadow: var(--shadow);
+    }
+    .hero h1{margin:0; font-size:20px;}
+    .hero p{margin:0; color:var(--muted); line-height:1.5;}
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin: 10px 0;
+    }
+    .tab{
+      border:1px solid var(--border); background: transparent;
+      border-radius: 999px; padding:8px 12px; cursor:pointer;
+      font-weight:800; font-size:13px; color:var(--muted);
+    }
+    .tab.active{
+      border-color: rgba(59,130,246,.35);
+      background: rgba(59,130,246,.12);
+      color: var(--text);
+    }
+    .small{font-size:12px; color:var(--muted);}
+    .hide{display:none;}
+    .photo{
+      max-width:100%; border-radius:12px; border:1px solid var(--border);
+    }
+    @media (max-width: 900px){
+      .app-shell{grid-template-columns: 1fr;}
+      .sidebar{position: relative; height:auto;}
+      .card{grid-column: span 12;}
+      .card.wide{grid-column: span 12;}
+      .field{grid-column: span 12;}
+      .field.span4{grid-column: span 12;}
+      .field.span3{grid-column: span 12;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="appRoot">
+    <div class="auth-wrap hide" id="authView">
+      <div class="hero">
+        <div class="brand" style="border-bottom:none; margin-bottom:0;">
+          <div class="logo">DB</div>
+          <div>
+            <div style="font-weight:900; font-size:18px;">DailyBudget</div>
+            <div class="small">Car Maintenance & Control</div>
+          </div>
+        </div>
+        <h1>Keep every service on time (miles + date) and log repairs.</h1>
+        <p>Sign in to store your vehicles, maintenance plans, and service history securely in Supabase.</p>
+
+        <div class="tabs">
+          <button class="tab active" id="tabLogin" type="button">Login</button>
+          <button class="tab" id="tabSignup" type="button">Sign Up</button>
+        </div>
+
+        <form class="form" id="loginForm">
+          <div class="field span12">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+          <div class="field span12">
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+          <div class="field span12">
+            <button class="btn primary" style="width:100%;" type="submit">Login</button>
+            <div class="small" style="margin-top:8px;">
+              If you enabled email verification in Supabase, check your inbox.
+            </div>
+          </div>
+          <div class="field span12">
+            <div id="authMsg" class="small"></div>
+          </div>
+        </form>
+
+        <form class="form hide" id="signupForm">
+          <div class="field span12">
+            <label>Email</label>
+            <input id="signupEmail" type="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+          <div class="field span12">
+            <label>Password</label>
+            <input id="signupPassword" type="password" placeholder="Create a strong password" required autocomplete="new-password" />
+          </div>
+          <div class="field span12">
+            <button class="btn green" style="width:100%;" type="submit">Create account</button>
+          </div>
+          <div class="field span12">
+            <div id="authMsg2" class="small"></div>
+          </div>
+          <div class="field span12">
+            <button class="btn" type="button" id="resetPwdBtn" style="width:100%;">Password reset</button>
+            <div class="small" style="margin-top:8px;">Supabase will email a reset link.</div>
+          </div>
+        </form>
+
+        <div class="small" style="line-height:1.6;">
+          <b>Privacy:</b> GitHub Pages is public, but your data is protected by Supabase Auth + Row Level Security (RLS).
+        </div>
+      </div>
+    </div>
+
+    <div class="app-shell hide" id="mainView">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo">DB</div>
+          <div>
+            <div style="font-weight:900; font-size:16px;">DailyBudget</div>
+            <div class="small" style="margin-top:2px;">Car Maintenance</div>
+          </div>
+        </div>
+        <div class="nav">
+          <button class="active" data-page="dashboard" type="button">Dashboard <span class="muted">⚡</span></button>
+          <button data-page="vehicles" type="button">Vehicles <span class="muted">🚗</span></button>
+          <button data-page="plans" type="button">Maintenance Plans <span class="muted">🧰</span></button>
+          <button data-page="logs" type="button">Service Logs <span class="muted">🧾</span></button>
+          <button data-page="reminders" type="button">Reminders <span class="muted">⏰</span></button>
+          <button data-page="reports" type="button">Reports <span class="muted">📊</span></button>
+          <button data-page="settings" type="button">Settings <span class="muted">⚙️</span></button>
+        </div>
+        <div class="footer">
+          <button class="btn" id="themeBtn" type="button" style="padding:8px 10px;border-radius:12px;">🌙 Theme</button>
+          <button class="btn danger" id="logoutBtn" type="button" style="padding:8px 10px;border-radius:12px;">Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <div class="title" id="pageTitle">Dashboard</div>
+            <div class="small" id="pageSubtitle"> </div>
+          </div>
+          <div class="chip" id="accountChip">Signed in</div>
+        </div>
+
+        <div id="pageContent"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Supabase + Chart.js -->
+  <script type="module">
+    // ====== CONFIG: Set these values ======
+    // Create a Supabase project and copy:
+    //  - Project URL
+    //  - anon public key
+    const SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE";
+
+    // ====== End config ======
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const els = {
+      authView: document.getElementById("authView"),
+      mainView: document.getElementById("mainView"),
+      authMsg: document.getElementById("authMsg"),
+      authMsg2: document.getElementById("authMsg2"),
+      tabLogin: document.getElementById("tabLogin"),
+      tabSignup: document.getElementById("tabSignup"),
+      loginForm: document.getElementById("loginForm"),
+      signupForm: document.getElementById("signupForm"),
+      loginEmail: document.getElementById("loginEmail"),
+      loginPassword: document.getElementById("loginPassword"),
+      signupEmail: document.getElementById("signupEmail"),
+      signupPassword: document.getElementById("signupPassword"),
+      resetPwdBtn: document.getElementById("resetPwdBtn"),
+      mainViewContent: document.getElementById("pageContent"),
+      pageTitle: document.getElementById("pageTitle"),
+      pageSubtitle: document.getElementById("pageSubtitle"),
+      accountChip: document.getElementById("accountChip"),
+      logoutBtn: document.getElementById("logoutBtn"),
+      themeBtn: document.getElementById("themeBtn"),
+      theme: null
+    };
+
+    const state = {
+      user: null,
+      page: "dashboard",
+      theme: "light"
+    };
+
+    function esc(s){
+      return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    function money(n){
+      if (!Number.isFinite(n)) return "0.00";
+      return Number(n).toFixed(2);
+    }
+
+    function nowISO(){
+      return new Date().toISOString().slice(0,10);
+    }
+
+    function parseMoney(input){
+      // allow "12.50" "100" etc. reject negatives
+      const n = Number(String(input).replace(/,/g, "").trim());
+      if (!Number.isFinite(n)) return null;
+      if (n < 0) return null;
+      return n;
+    }
+
+    function parseIntSafe(input){
+      const n = Number(String(input).trim());
+      if (!Number.isFinite(n)) return null;
+      return Math.trunc(n);
+    }
+
+    function toast(msg, type="ok"){
+      const el = document.createElement("div");
+      el.className = "notice " + (type==="warn" ? "warn" : type==="danger" ? "danger" : type==="ok" ? "ok" : "");
+      el.textContent = msg;
+      el.style.marginBottom = "12px";
+      document.querySelector(".main").prepend(el);
+      setTimeout(()=>{ el.remove(); }, 3500);
+    }
+
+    function setTheme(t){
+      state.theme = t;
+      document.documentElement.setAttribute("data-theme", t);
+      localStorage.setItem("db_theme", t);
+    }
+
+    // Auth view / main view
+    function showAuth(){ els.authView.classList.remove("hide"); els.mainView.classList.add("hide"); }
+    function showApp(){ els.authView.classList.add("hide"); els.mainView.classList.remove("hide"); }
+
+    // Tabs
+    els.tabLogin.addEventListener("click", ()=>{
+      els.tabLogin.classList.add("active"); els.tabSignup.classList.remove("active");
+      els.loginForm.classList.remove("hide"); els.signupForm.classList.add("hide");
+      els.authMsg.textContent=""; els.authMsg2.textContent="";
+    });
+    els.tabSignup.addEventListener("click", ()=>{
+      els.tabSignup.classList.add("active"); els.tabLogin.classList.remove("active");
+      els.signupForm.classList.remove("hide"); els.loginForm.classList.add("hide");
+      els.authMsg2.textContent=""; els.authMsg.textContent="";
+    });
+
+    // Login / Signup
+    els.loginForm.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      els.authMsg.textContent="Signing in...";
+      const email = els.loginEmail.value.trim();
+      const password = els.loginPassword.value;
+      try{
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        els.authMsg.textContent="";
+        toast("Login successful", "ok");
+      }catch(err){
+        els.authMsg.textContent = "Error: " + esc(err.message);
+      }
+    });
+
+    els.signupForm.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const email = els.signupEmail.value.trim();
+      const password = els.signupPassword.value;
+      els.authMsg2.textContent="Creating account...";
+      try{
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        els.authMsg2.textContent="Account created. If verification is enabled, check your email.";
+        toast("Check your inbox (if email verification is enabled)", "ok");
+      }catch(err){
+        els.authMsg2.textContent = "Error: " + esc(err.message);
+      }
+    });
+
+    els.resetPwdBtn.addEventListener("click", async ()=>{
+      const email = els.signupEmail.value.trim() || els.loginEmail.value.trim();
+      if (!email){
+        toast("Enter your email first.", "warn"); return;
+      }
+      try{
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        toast("Password reset email sent (if account exists).", "ok");
+      }catch(err){
+        toast("Reset failed: " + err.message, "danger");
+      }
+    });
+
+    // Logout
+    els.logoutBtn.addEventListener("click", async ()=>{
+      try{
+        await supabase.auth.signOut();
+        toast("Logged out", "ok");
+      }catch(e){}
+    });
+
+    // Theme
+    els.themeBtn.addEventListener("click", ()=>{
+      const next = (state.theme === "dark") ? "light" : "dark";
+      setTheme(next);
+      toast("Theme updated", "ok");
+    });
+
+    // Navigation
+    function setActiveNav(page){
+      document.querySelectorAll(".nav button").forEach(b=>{
+        b.classList.toggle("active", b.dataset.page === page);
+      });
+    }
+
+    function formatDueLabel(status, label){
+      if (status==="danger") return `<span class="pill"><span class="dot danger"></span>${esc(label)}</span>`;
+      if (status==="warn") return `<span class="pill"><span class="dot warn"></span>${esc(label)}</span>`;
+      if (status==="ok") return `<span class="pill"><span class="dot ok"></span>${esc(label)}</span>`;
+      return `<span class="pill"><span class="dot"></span>${esc(label)}</span>`;
+    }
+
+    // ====== Data access helpers ======
+    async function fetchUserProfile(){
+      const { data, error } = await supabase.from("profiles").select("*").single();
+      if (error) return null;
+      return data;
+    }
+
+    async function fetchVehicles(){
+      const { data, error } = await supabase.from("vehicles").select("*").order("created_at", { ascending:false });
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function fetchPlans(){
+      const { data, error } = await supabase.from("maintenance_plans").select("*").order("created_at", { ascending:false });
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function fetchLogs(){
+      const { data, error } = await supabase.from("maintenance_logs").select("*").order("performed_at", { ascending:false });
+      if (error) throw error;
+      return data || [];
+    }
+
+    // Compute last mileage for a plan and due by miles/date
+    function daysBetweenISO(iso1, iso2){
+      // iso1, iso2 as yyyy-mm-dd
+      const d1 = new Date(iso1 + "T00:00:00Z");
+      const d2 = new Date(iso2 + "T00:00:00Z");
+      return Math.floor((d2 - d1) / (1000*60*60*24));
+    }
+
+    function addDaysISO(dateISO, days){
+      const d = new Date(dateISO + "T00:00:00Z");
+      d.setUTCDate(d.getUTCDate() + Number(days));
+      return d.toISOString().slice(0,10);
+    }
+
+    function computeDue(plan, vehicle, logs){
+      // plan: interval_miles, interval_months
+      // due by miles: last_performed_mileage + interval_miles
+      // due by date: last_performed_date + interval_months*30 (approx) OR better month arithmetic
+      const relevantLogs = logs.filter(l => l.maintenance_plan_id === plan.id);
+      const lastLog = relevantLogs[0] || null; // since logs sorted desc
+      const currentMiles = Number(vehicle?.current_odometer_miles ?? 0);
+
+      let dueMiles = null;
+      let dueDate = null;
+
+      let lastMileage = null;
+      let lastPerformed = null;
+
+      if (lastLog){
+        lastMileage = Number(lastLog.mileage_at_service_miles ?? 0);
+        lastPerformed = lastLog.performed_at; // date
+        if (Number(plan.interval_miles) > 0 && lastMileage != null){
+          dueMiles = lastMileage + Number(plan.interval_miles);
+        }
+        if (Number(plan.interval_months) > 0 && lastPerformed){
+          // month arithmetic (exact)
+          const d = new Date(lastPerformed + "T00:00:00Z");
+          const months = Number(plan.interval_months);
+          d.setUTCMonth(d.getUTCMonth() + months);
+          dueDate = d.toISOString().slice(0,10);
+        }
+      }else{
+        // If never serviced, we can compute from "baseline" fields.
+        // Use vehicle starting odometer as baseline.
+        if (Number(plan.interval_miles) > 0){
+          const baseMiles = Number(vehicle.starting_odometer_miles ?? 0);
+          dueMiles = baseMiles + Number(plan.interval_miles);
+        }
+        if (Number(plan.interval_months) > 0){
+          const baseDate = vehicle.purchase_date || vehicle.created_at?.slice(0,10) || nowISO();
+          const d = new Date(baseDate + "T00:00:00Z");
+          d.setUTCMonth(d.getUTCMonth() + Number(plan.interval_months));
+          dueDate = d.toISOString().slice(0,10);
+        }
+      }
+
+      // status logic: danger if exceeded by either miles or date
+      // warn: within 10% of miles interval or within 14 days of due date
+      let status = "ok";
+      const warnings = [];
+
+      if (dueMiles != null){
+        if (currentMiles >= dueMiles){
+          status = "danger";
+          warnings.push("Miles due reached");
+        } else {
+          const interval = Number(plan.interval_miles);
+          if (interval > 0){
+            const used = currentMiles - (lastMileage ?? Number(vehicle.starting_odometer_miles ?? 0));
+            const pct = (used / interval);
+            if (pct >= 0.8) { status = status==="danger" ? "danger" : "warn"; warnings.push("Miles near due"); }
+          }
+        }
+      }
+
+      if (dueDate){
+        const today = nowISO();
+        if (daysBetweenISO(today, dueDate) <= 0){
+          status = "danger";
+          warnings.push("Date due reached");
+        } else if (daysBetweenISO(today, dueDate) <= 14){
+          status = status==="danger" ? "danger" : "warn";
+          warnings.push("Date due soon");
+        }
+      }
+
+      // progress for miles if interval exists
+      let milesProgress = null;
+      if (dueMiles != null && Number(plan.interval_miles) > 0){
+        const baseMiles = (lastMileage ?? Number(vehicle.starting_odometer_miles ?? 0));
+        const interval = Number(plan.interval_miles);
+        const used = (currentMiles - baseMiles);
+        milesProgress = Math.max(0, Math.min(1.5, used/interval));
+      }
+
+      // progress for date (approx)
+      let dateProgress = null;
+      if (dueDate && lastPerformed){
+        const base = lastPerformed;
+        const totalDays = Math.max(1, daysBetweenISO(base, dueDate));
+        const passedDays = Math.max(0, daysBetweenISO(base, nowISO()));
+        dateProgress = Math.max(0, Math.min(1.5, passedDays/totalDays));
+      }
+
+      return {
+        status,
+        dueMiles,
+        dueDate,
+        milesProgress,
+        dateProgress,
+        warnings,
+        lastLog
+      };
+    }
+
+    function calcNextBreakdown(plansWithDue){
+      // return counts
+      let danger = 0, warn = 0;
+      for (const p of plansWithDue){
+        if (p.status === "danger") danger++;
+        else if (p.status === "warn") warn++;
+      }
+      return { danger, warn, total: plansWithDue.length };
+    }
+
+    // ====== UI rendering ======
+    async function renderPage(){
+      setActiveNav(state.page);
+      const user = state.user;
+      els.accountChip.textContent = user ? `Signed in as ${user.email}` : "Signed out";
+
+      els.mainViewContent.innerHTML = "";
+      els.pageTitle.textContent = ({
+        dashboard:"Dashboard",
+        vehicles:"Vehicles",
+        plans:"Maintenance Plans",
+        logs:"Service Logs",
+        reminders:"Reminders",
+        reports:"Reports",
+        settings:"Settings"
+      })[state.page] || "Dashboard";
+
+      if (!user) return;
+
+      const vehicles = await fetchVehicles();
+      const plans = await fetchPlans();
+      const logs = await fetchLogs();
+
+      const vehiclesById = Object.fromEntries(vehicles.map(v=>[v.id, v]));
+      const plansForVehicles = plans; // already per vehicle
+
+      if (state.page === "dashboard"){
+        // top summary + upcoming
+        // compute due entries
+        const entries = plansForVehicles.map(p=>{
+          const v = vehiclesById[p.vehicle_id];
+          const due = computeDue(p, v, logs);
+          return { ...p, vehicle: v, ...due };
+        });
+
+        // sort by urgency: danger first, then warn, then by closest due date/miles
+        const urgencyScore = (e)=>{
+          let s = (e.status==="danger")?0 : (e.status==="warn")?1 : 2;
+          return s;
+        };
+        const sorted = entries.slice().sort((a,b)=>{
+          const sA = urgencyScore(a), sB = urgencyScore(b);
+          if (sA !== sB) return sA - sB;
+          // tie-break by date then miles
+          const da = a.dueDate ? a.dueDate : "9999-12-31";
+          const db = b.dueDate ? b.dueDate : "9999-12-31";
+          if (da !== db) return da.localeCompare(db);
+          const ma = a.dueMiles ?? 1e18;
+          const mb = b.dueMiles ?? 1e18;
+          return ma - mb;
+        });
+
+        const next = sorted.slice(0,6);
+        const counts = calcNextBreakdown(entries);
+
+        const year = new Date().getUTCFullYear();
+        const month = new Date().getUTCMonth()+1;
+        const startYear = `${year}-01-01`;
+        const startMonth = `${year}-${String(month).padStart(2,'0')}-01`;
+
+        const logsThisYear = logs.filter(l => (l.performed_at||"").slice(0,10) >= startYear);
+        const logsThisMonth = logs.filter(l => (l.performed_at||"").slice(0,10) >= startMonth);
+
+        const totalCostYear = logsThisYear.reduce((a,l)=> a + Number(l.total_cost_usd ?? 0), 0);
+        const totalCostMonth = logsThisMonth.reduce((a,l)=> a + Number(l.total_cost_usd ?? 0), 0);
+
+        els.mainViewContent.innerHTML = `
+          <div class="grid">
+            <div class="card">
+              <div class="kpi-label">Vehicles</div>
+              <div class="kpi-value">${vehicles.length}</div>
+              <div class="small muted">Active vehicles in your account</div>
+            </div>
+            <div class="card">
+              <div class="kpi-label">Upcoming alerts</div>
+              <div class="kpi-value">${counts.danger + counts.warn}</div>
+              <div class="row" style="margin-top:8px;">
+                <span class="pill"><span class="dot danger"></span>Overdue: <b>${counts.danger}</b></span>
+                <span class="pill"><span class="dot warn"></span>Soon: <b>${counts.warn}</b></span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="kpi-label">Cost (this month)</div>
+              <div class="kpi-value">$${money(totalCostMonth)}</div>
+              <div class="small muted">Total of logged services</div>
+            </div>
+
+            <div class="card wide">
+              <div class="kpi-label">Next services due</div>
+              <div style="margin-top:10px;">
+                ${
+                  next.length ? next.map(e=>{
+                    const vName = `${e.vehicle?.make_model_year ?? "Vehicle"}`
+                      + (e.vehicle?.label ? ` (${e.vehicle.label})` : "");
+                    const dueBits = [
+                      e.dueMiles != null ? `Miles: ${Math.round(e.dueMiles).toLocaleString()} mi` : null,
+                      e.dueDate ? `Date: ${esc(e.dueDate)}` : null
+                    ].filter(Boolean).join(" • ");
+
+                    return `
+                      <div style="padding:10px; border:1px solid var(--border); border-radius:14px; margin-bottom:10px; background: rgba(2,6,23,.015);">
+                        <div class="row">
+                          <div style="font-weight:900;">${esc(e.name)}</div>
+                          <div class="right">${formatDueLabel(e.status, e.status==="danger"?"Overdue": e.status==="warn" ? "Due soon" : "OK")}</div>
+                        </div>
+                        <div class="small muted" style="margin-top:4px;">For: ${esc(vName)}</div>
+                        <div class="small" style="margin-top:6px;"><b>Due:</b> ${dueBits || "Not scheduled"}</div>
+                      </div>
+                    `;
+                  }).join("") : `<div class="notice">No maintenance plans yet. Create a plan to get reminders.</div>`
+                }
+              </div>
+            </div>
+
+            <div class="card wide">
+              <div class="kpi-label">Recent services</div>
+              <div style="margin-top:10px;">
+                ${
+                  logs.slice(0,6).map(l=>{
+                    const v = vehiclesById[l.vehicle_id];
+                    return `
+                      <div style="padding:10px; border:1px solid var(--border); border-radius:14px; margin-bottom:10px; background: rgba(2,6,23,.015);">
+                        <div class="row">
+                          <div style="font-weight:900;">${esc(l.service_name)}</div>
+                          <div class="right success-text">$${money(l.total_cost_usd)}</div>
+                        </div>
+                        <div class="small muted" style="margin-top:4px;">${esc(v?.make_model_year ?? "Vehicle")} • ${esc(l.performed_at)}</div>
+                        <div class="small" style="margin-top:6px;">Mileage: ${esc(l.mileage_at_service_miles ?? "")} mi</div>
+                        ${l.notes ? `<div class="small muted" style="margin-top:6px;">${esc(l.notes)}</div>` : ""}
+                      </div>
+                    `;
+                  }).join("")
+                }
+              </div>
+            </div>
+
+            <div class="card full">
+              <div class="row" style="justify-content:space-between;">
+                <div>
+                  <div class="kpi-label">Cost summary</div>
+                  <div class="small muted">Logged maintenance cost (sum of service costs)</div>
+                </div>
+                <div class="row">
+                  <span class="pill"><span class="dot ok"></span>Year: <b>$${money(totalCostYear)}</b></span>
+                </div>
+              </div>
+              <div style="margin-top:10px;">
+                <canvas id="costChart" height="110"></canvas>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Render chart
+        const canvas = document.getElementById("costChart");
+        // load chart.js
+        if (!window.Chart){
+          await import("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js");
+        }
+        const monthLabels = [];
+        const monthly = new Array(12).fill(0);
+        for (let i=0;i<12;i++){
+          monthLabels.push(new Date(Date.UTC(year,i,1)).toLocaleString(undefined,{month:'short'}));
+        }
+        for (const l of logsThisYear){
+          const m = Number(String(l.performed_at).slice(5,7)) - 1;
+          if (m>=0 && m<12) monthly[m] += Number(l.total_cost_usd ?? 0);
+        }
+        new Chart(canvas, {
+          type:"bar",
+          data:{
+            labels: monthLabels,
+            datasets:[{
+              label:"Maintenance cost (USD)",
+              data: monthly.map(x=>Number(x.toFixed(2))),
+              backgroundColor:"rgba(59,130,246,.35)",
+              borderColor:"rgba(29,78,216,1)",
+              borderWidth:1
+            }]
+          },
+          options:{
+            responsive:true,
+            plugins:{ legend:{ display:false } },
+            scales:{
+              y:{ beginAtZero:true, ticks:{ callback:(v)=>"$"+v } }
+            }
+          }
+        });
+
+      } else if (state.page === "vehicles"){
+        els.mainViewContent.innerHTML = `
+          <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+            <div>
+              <div class="kpi-label">Your vehicles</div>
+              <div class="small muted">Add a vehicle, keep current odometer in miles, and link plans.</div>
+            </div>
+            <button class="btn primary" id="addVehicleBtn" type="button">+ Add vehicle</button>
+          </div>
+          <div id="vehicleList"></div>
+        `;
+
+        const list = document.getElementById("vehicleList");
+        const vehicles = await fetchVehicles();
+        if (!vehicles.length){
+          list.innerHTML = `<div class="notice">No vehicles yet. Click <b>Add vehicle</b>.</div>`;
+        } else {
+          list.innerHTML = `
+            <table class="table">
+              <thead><tr>
+                <th>Vehicle</th>
+                <th>Odometer</th>
+                <th>Purchase / Baseline date</th>
+                <th class="right">Actions</th>
+              </tr></thead>
+              <tbody>
+                ${vehicles.map(v=>{
+                  return `
+                    <tr>
+                      <td>
+                        <b>${esc(v.make_model_year || "Vehicle")}</b>
+                        <div class="small muted">${v.label ? esc(v.label) : ""}</div>
+                      </td>
+                      <td>
+                        <b>${esc(v.current_odometer_miles ?? 0)} mi</b>
+                      </td>
+                      <td class="small muted">${esc(v.purchase_date ?? "")}</td>
+                      <td class="right">
+                        <button class="btn" type="button" data-action="edit" data-id="${v.id}">Edit</button>
+                        <button class="btn danger" type="button" data-action="del" data-id="${v.id}">Delete</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          `;
+        }
+
+        async function openVehicleModal(existing=null){
+          const vehiclesPlansCount = existing ? await supabase.from("maintenance_plans").select("*", { count:"exact" }).eq("vehicle_id", existing.id) : null;
+
+          const modal = document.createElement("div");
+          modal.style.position="fixed"; inset="0"; background:"rgba(0,0,0,.35)";
+          modal.style.display="grid"; placeItems="center"; zIndex=9999;
+
+          modal.innerHTML = `
+            <div style="width:min(720px, 94vw); background: var(--panel); border:1px solid var(--border); border-radius:18px; padding:14px; box-shadow: var(--shadow);">
+              <div class="row" style="justify-content:space-between;">
+                <div>
+                  <div style="font-weight:900; font-size:16px;">${existing ? "Edit vehicle" : "Add vehicle"}</div>
+                  <div class="small muted">Baseline fields help compute reminders before your first log.</div>
+                </div>
+                <button class="btn" type="button" id="closeModal">Close</button>
+              </div>
+
+              <form class="form" id="vehicleForm" style="margin-top:12px;">
+                <div class="field span6">
+                  <label>Label (optional)</label>
+                  <input name="label" type="text" placeholder="e.g., Work car" value="${esc(existing?.label)}" />
+                </div>
+                <div class="field span6">
+                  <label>Make / Model / Year</label>
+                  <input name="make_model_year" type="text" required placeholder="e.g., Honda Civic 2019" value="${esc(existing?.make_model_year)}" />
+                </div>
+
+                <div class="field span4">
+                  <label>Current odometer (miles)</label>
+                  <input name="current_odometer_miles" type="number" min="0" step="1" required value="${esc(existing?.current_odometer_miles ?? "")}" />
+                </div>
+                <div class="field span4">
+                  <label>Starting odometer (miles)</label>
+                  <input name="starting_odometer_miles" type="number" min="0" step="1" required value="${esc(existing?.starting_odometer_miles ?? 0)}" />
+                </div>
+                <div class="field span4">
+                  <label>Purchase/Baseline date</label>
+                  <input name="purchase_date" type="date" value="${esc(existing?.purchase_date ?? nowISO())}" />
+                </div>
+
+                <div class="field span12">
+                  <label>Notes (optional)</label>
+                  <textarea name="notes" placeholder="Any details you want to remember...">${esc(existing?.notes)}</textarea>
+                </div>
+
+                <div class="field span12 row" style="justify-content:flex-end; margin-top:6px;">
+                  <button class="btn" type="button" id="cancelVehicleBtn">Cancel</button>
+                  <button class="btn primary" type="submit">${existing ? "Save changes" : "Create vehicle"}</button>
+                </div>
+              </form>
+            </div>
+          `;
+
+          modal.querySelector("#closeModal").onclick = ()=>modal.remove();
+          modal.querySelector("#cancelVehicleBtn").onclick = ()=>modal.remove();
+          document.body.appendChild(modal);
+
+          const form = modal.querySelector("#vehicleForm");
+          form.addEventListener("submit", async (e)=>{
+            e.preventDefault();
+            const fd = new FormData(form);
+            const currentOdo = parseIntSafe(fd.get("current_odometer_miles"));
+            const startingOdo = parseIntSafe(fd.get("starting_odometer_miles"));
+            if (currentOdo == null || startingOdo == null || currentOdo < 0 || startingOdo < 0){
+              toast("Please enter valid odometer values.", "danger"); return;
+            }
+            const payload = {
+              user_id: state.user.id,
+              label: String(fd.get("label")||""),
+              make_model_year: String(fd.get("make_model_year")||"").trim(),
+              current_odometer_miles: currentOdo,
+              starting_odometer_miles: startingOdo,
+              purchase_date: String(fd.get("purchase_date")||nowISO()),
+              notes: String(fd.get("notes")||"").trim()
+            };
+
+            try{
+              if (existing){
+                const { error } = await supabase.from("vehicles").update(payload).eq("id", existing.id);
+                if (error) throw error;
+                toast("Vehicle updated", "ok");
+              } else {
+                const { error } = await supabase.from("vehicles").insert(payload);
+                if (error) throw error;
+                toast("Vehicle created", "ok");
+              }
+              modal.remove();
+              renderPage();
+            }catch(err){
+              toast("Error: "+err.message, "danger");
+            }
+          });
+        }
+
+        document.getElementById("addVehicleBtn").onclick = ()=>openVehicleModal(null);
+
+        list.addEventListener("click", async (e)=>{
+          const btn = e.target.closest("button[data-action]");
+          if (!btn) return;
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+          if (action === "edit"){
+            const { data } = await supabase.from("vehicles").select("*").eq("id", id).single();
+            openVehicleModal(data);
+          }
+          if (action === "del"){
+            if (!confirm("Delete this vehicle? This will also delete its plans and logs (cascade).")) return;
+            try{
+              const { error } = await supabase.from("vehicles").delete().eq("id", id);
+              if (error) throw error;
+              toast("Vehicle deleted", "ok");
+              renderPage();
+            }catch(err){
+              toast("Delete failed: "+err.message, "danger");
+            }
+          }
+        });
+
+      } else if (state.page === "plans"){
+        els.mainViewContent.innerHTML = `
+          <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+            <div>
+              <div class="kpi-label">Maintenance plans</div>
+              <div class="small muted">Set service intervals by miles and/or date for each vehicle.</div>
+            </div>
+            <button class="btn primary" id="addPlanBtn" type="button">+ Add plan</button>
+          </div>
+          <div id="planList"></div>
+        `;
+
+        const vehicles = await fetchVehicles();
+        const plans = await fetchPlans();
+
+        const list = document.getElementById("planList");
+        if (!plans.length){
+          list.innerHTML = `<div class="notice">No maintenance plans yet. Create one to get due reminders.</div>`;
+        } else {
+          list.innerHTML = `
+            <table class="table">
+              <thead><tr>
+                <th>Service</th>
+                <th>Vehicle</th>
+                <th>Interval (miles)</th>
+                <th>Interval (months)</th>
+                <th class="right">Actions</th>
+              </tr></thead>
+              <tbody>
+                ${plans.map(p=>{
+                  const v = vehicles.find(x=>x.id===p.vehicle_id);
+                  return `
+                    <tr>
+                      <td>
+                        <b>${esc(p.name)}</b>
+                        <div class="small muted">${p.notes ? esc(p.notes) : ""}</div>
+                      </td>
+                      <td class="small muted">${esc(v?.make_model_year ?? "")}</td>
+                      <td>${p.interval_miles ? esc(p.interval_miles) : <span class="muted">—</span>}</td>
+                      <td>${p.interval_months ? esc(p.interval_months) : <span class="muted">—</span>}</td>
+                      <td class="right">
+                        <button class="btn" type="button" data-action="edit" data-id="${p.id}">Edit</button>
+                        <button class="btn danger" type="button" data-action="del" data-id="${p.id}">Delete</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          `;
+        }
+
+        async function openPlanModal(existing=null){
+          const modal = document.createElement("div");
+          modal.style.position="fixed"; inset="0"; background:"rgba(0,0,0,.35)";
+          modal.style.display="grid"; placeItems="center"; zIndex=9999;
+
+          const vOptions = vehicles.map(v=>`<option value="${v.id}" ${existing && existing.vehicle_id===v.id ? "selected":""}>${esc(v.make_model_year)}${v.label?` (${esc(v.label)})`:""}</option>`).join("");
+
+          modal.innerHTML = `
+            <div style="width:min(820px, 94vw); background: var(--panel); border:1px solid var(--border); border-radius:18px; padding:14px; box-shadow: var(--shadow);">
+              <div class="row" style="justify-content:space-between;">
+                <div>
+                  <div style="font-weight:900; font-size:16px;">${existing ? "Edit maintenance plan" : "Add maintenance plan"}</div>
+                  <div class="small muted">You can use miles-only, date-only, or both.</div>
+                </div>
+                <button class="btn" type="button" id="closeModal">Close</button>
+              </div>
+
+              <form class="form" id="planForm" style="margin-top:12px;">
+                <div class="field span12">
+                  <label>Vehicle</label>
+                  <select name="vehicle_id" required>${vOptions}</select>
+                </div>
+
+                <div class="field span6">
+                  <label>Service name (e.g., Oil change)</label>
+                  <input name="name" type="text" required value="${esc(existing?.name)}" placeholder="Oil change" />
+                </div>
+                <div class="field span6">
+                  <label>Default service cost (USD, optional)</label>
+                  <input name="default_cost_usd" type="number" min="0" step="0.01" value="${existing?.default_cost_usd ?? ""}" placeholder="0.00" />
+                </div>
+
+                <div class="field span6">
+                  <label>Interval by miles (miles)</label>
+                  <input name="interval_miles" type="number" min="0" step="1" value="${existing?.interval_miles ?? ""}" placeholder="e.g., 8000" />
+                  <div class="small muted">Leave empty or 0 for no mileage reminder.</div>
+                </div>
+
+                <div class="field span6">
+                  <label>Interval by date (months)</label>
+                  <input name="interval_months" type="number" min="0" step="1" value="${existing?.interval_months ?? ""}" placeholder="e.g., 6" />
+                  <div class="small muted">Leave empty or 0 for no date reminder.</div>
+                </div>
+
+                <div class="field span12">
+                  <label>Notes (optional)</label>
+                  <textarea name="notes" placeholder="Any extra details...">${esc(existing?.notes)}</textarea>
+                </div>
+
+                <div class="field span12 row" style="justify-content:flex-end; margin-top:6px;">
+                  <button class="btn" type="button" id="cancelPlanBtn">Cancel</button>
+                  <button class="btn primary" type="submit">${existing ? "Save changes" : "Create plan"}</button>
+                </div>
+              </form>
+            </div>
+          `;
+
+          modal.querySelector("#closeModal").onclick = ()=>modal.remove();
+          modal.querySelector("#cancelPlanBtn").onclick = ()=>modal.remove();
+          document.body.appendChild(modal);
+
+          modal.querySelector("#planForm").addEventListener("submit", async (e)=>{
+            e.preventDefault();
+            const fd = new FormData(modal.querySelector("#planForm"));
+
+            const intervalMiles = fd.get("interval_miles");
+            const intervalMonths = fd.get("interval_months");
+            const defaultCost = fd.get("default_cost_usd");
+
+            const interval_miles = intervalMiles ? parseIntSafe(intervalMiles) : 0;
+            const interval_months = intervalMonths ? parseIntSafe(intervalMonths) : 0;
+            const default_cost_usd = defaultCost ? parseMoney(defaultCost) : 0;
+
+            if ((interval_miles ?? 0) < 0 || (interval_months ?? 0) < 0){
+              toast("Intervals must be valid non-negative numbers.", "danger"); return;
+            }
+            if ((!interval_miles || interval_miles===0) && (!interval_months || interval_months===0)){
+              toast("Set at least one interval: miles or months.", "warn"); return;
+            }
+
+            const payload = {
+              user_id: state.user.id,
+              vehicle_id: String(fd.get("vehicle_id")||""),
+              name: String(fd.get("name")||"").trim(),
+              interval_miles: Number(interval_miles || 0),
+              interval_months: Number(interval_months || 0),
+              default_cost_usd: Number(default_cost_usd || 0),
+              notes: String(fd.get("notes")||"").trim()
+            };
+
+            try{
+              if (existing){
+                const { error } = await supabase.from("maintenance_plans").update(payload).eq("id", existing.id);
+                if (error) throw error;
+                toast("Plan updated", "ok");
+              } else {
+                const { error } = await supabase.from("maintenance_plans").insert(payload);
+                if (error) throw error;
+                toast("Plan created", "ok");
+              }
+              modal.remove();
+              renderPage();
+            }catch(err){
+              toast("Error: "+err.message, "danger");
+            }
+          });
+        }
+
+        document.getElementById("addPlanBtn").onclick = ()=>openPlanModal(null);
+
+        list.addEventListener("click", async (e)=>{
+          const btn = e.target.closest("button[data-action]");
+          if (!btn) return;
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+
+          if (action === "edit"){
+            const { data } = await supabase.from("maintenance_plans").select("*").eq("id", id).single();
+            openPlanModal(data);
+          }
+          if (action === "del"){
+            if (!confirm("Delete this maintenance plan? This will also delete its service logs (cascade).")) return;
+            try{
+              const { error } = await supabase.from("maintenance_plans").delete().eq("id", id);
+              if (error) throw error;
+              toast("Plan deleted", "ok");
+              renderPage();
+            }catch(err){
+              toast("Delete failed: "+err.message, "danger");
+            }
+          }
+        });
+
+      } else if (state.page === "logs"){
+        els.mainViewContent.innerHTML = `
+          <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+            <div>
+              <div class="kpi-label">Service logs</div>
+              <div class="small muted">Log performed services. Reminders will update automatically based on these logs.</div>
+            </div>
+            <button class="btn primary" id="addLogBtn" type="button">+ Add service</button>
+          </div>
+          <div id="logList"></div>
+        `;
+
+        const vehicles = await fetchVehicles();
+        const plans = await fetchPlans();
+        const logs = await fetchLogs();
+
+        const list = document.getElementById("logList");
+        if (!logs.length){
+          list.innerHTML = `<div class="notice">No services logged yet.</div>`;
+        } else {
+          list.innerHTML = `
+            <table class="table">
+              <thead><tr>
+                <th>Service</th>
+                <th>Vehicle</th>
+                <th>Date</th>
+                <th>Mileage</th>
+                <th>Cost</th>
+                <th class="right">Actions</th>
+              </tr></thead>
+              <tbody>
+                ${logs.slice(0,200).map(l=>{
+                  const v = vehicles.find(x=>x.id===l.vehicle_id);
+                  const plan = plans.find(p=>p.id===l.maintenance_plan_id);
+                  return `
+                    <tr>
+                      <td>
+                        <b>${esc(l.service_name || plan?.name || "Service")}</b>
+                        <div class="small muted">${l.notes ? esc(l.notes).slice(0,60) : ""}</div>
+                      </td>
+                      <td class="small muted">${esc(v?.make_model_year ?? "")}</td>
+                      <td>${esc(l.performed_at || "")}</td>
+                      <td>${esc(l.mileage_at_service_miles ?? "")} mi</td>
+                      <td>$${money(l.total_cost_usd ?? 0)}</td>
+                      <td class="right">
+                        <button class="btn" type="button" data-action="edit" data-id="${l.id}">Edit</button>
+                        <button class="btn danger" type="button" data-action="del" data-id="${l.id}">Delete</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          `;
+        }
+
+        async function openLogModal(existing=null){
+          const plans = await fetchPlans();
+          const vehicles = await fetchVehicles();
+
+          const modal = document.createElement("div");
+          modal.style.position="fixed"; inset="0"; background:"rgba(0,0,0,.35)";
+          modal.style.display="grid"; placeItems="center"; zIndex=9999;
+
+          const planOptions = plans.map(p=>{
+            const v = vehicles.find(x=>x.id===p.vehicle_id);
+            const selected = existing && existing.maintenance_plan_id===p.id ? "selected" : "";
+            return `<option value="${p.id}" ${selected}>${esc(p.name)} — ${esc(v?.make_model_year ?? "")}</option>`;
+          }).join("");
+
+          modal.innerHTML = `
+            <div style="width:min(920px, 94vw); background: var(--panel); border:1px solid var(--border); border-radius:18px; padding:14px; box-shadow: var(--shadow);">
+              <div class="row" style="justify-content:space-between;">
+                <div>
+                  <div style="font-weight:900; font-size:16px;">${existing ? "Edit service log" : "Add service log"}</div>
+                  <div class="small muted">Link the log to a maintenance plan so due reminders update.</div>
+                </div>
+                <button class="btn" type="button" id="closeModal">Close</button>
+              </div>
+
+              <form class="form" id="logForm" style="margin-top:12px;">
+                <div class="field span12">
+                  <label>Maintenance plan</label>
+                  <select name="maintenance_plan_id" required>${planOptions}</select>
+                </div>
+
+                <div class="field span6">
+                  <label>Service name (auto-filled)</label>
+                  <input name="service_name" type="text" required value="${esc(existing?.service_name ?? "")}" placeholder="e.g., Oil change" />
+                </div>
+                <div class="field span6">
+                  <label>Date performed</label>
+                  <input name="performed_at" type="date" required value="${esc(existing?.performed_at ?? nowISO())}" />
+                </div>
+
+                <div class="field span4">
+                  <label>Mileage at service (miles)</label>
+                  <input name="mileage_at_service_miles" type="number" min="0" step="1" required value="${esc(existing?.mileage_at_service_miles ?? "")}" />
+                </div>
+                <div class="field span4">
+                  <label>Parts cost (USD)</label>
+                  <input name="parts_cost_usd" type="number" min="0" step="0.01" value="${esc(existing?.parts_cost_usd ?? 0)}" />
+                </div>
+                <div class="field span4">
+                  <label>Labor cost (USD)</label>
+                  <input name="labor_cost_usd" type="number" min="0" step="0.01" value="${esc(existing?.labor_cost_usd ?? 0)}" />
+                </div>
+
+                <div class="field span12">
+                  <label>Total cost (USD)</label>
+                  <input name="total_cost_usd" type="number" min="0" step="0.01" required value="${esc(existing?.total_cost_usd ?? 0)}" />
+                  <div class="small muted">Tip: Total = parts + labor. You can also edit it manually.</div>
+                </div>
+
+                <div class="field span12">
+                  <label>Notes (optional)</label>
+                  <textarea name="notes" placeholder="What was done? Any problems?">${esc(existing?.notes ?? "")}</textarea>
+                </div>
+
+                <div class="field span12">
+                  <label>Receipt photo (optional)</label>
+                  <input name="receipt_file" type="file" accept="image/*" />
+                  ${existing?.receipt_url ? `<div class="small muted" style="margin-top:8px;">Current receipt:</div><img class="photo" src="${esc(existing.receipt_url)}" alt="receipt" style="margin-top:6px;" />` : ""}
+                </div>
+
+                <div class="field span12 row" style="justify-content:flex-end; margin-top:6px;">
+                  <button class="btn" type="button" id="cancelLogBtn">Cancel</button>
+                  <button class="btn primary" type="submit">${existing ? "Save changes" : "Create log"}</button>
+                </div>
+              </form>
+            </div>
+          `;
+
+          modal.querySelector("#closeModal").onclick = ()=>modal.remove();
+          modal.querySelector("#cancelLogBtn").onclick = ()=>modal.remove();
+          document.body.appendChild(modal);
+
+          // auto-fill service_name and default cost (best-effort)
+          const logForm = modal.querySelector("#logForm");
+          const selectPlan = logForm.querySelector("select[name=maintenance_plan_id]");
+          const serviceNameInput = logForm.querySelector("input[name=service_name]");
+          const partsInput = logForm.querySelector("input[name=parts_cost_usd]");
+          const laborInput = logForm.querySelector("input[name=labor_cost_usd]");
+          const totalInput = logForm.querySelector("input[name=total_cost_usd]");
+
+          const plansMap = Object.fromEntries(plans.map(p=>[p.id,p]));
+          function recomputeTotal(){
+            const parts = parseMoney(partsInput.value);
+            const labor = parseMoney(laborInput.value);
+            const p = (parts==null?0:parts);
+            const l = (labor==null?0:labor);
+            totalInput.value = String((p+l).toFixed(2));
+          }
+          partsInput.addEventListener("input", recomputeTotal);
+          laborInput.addEventListener("input", recomputeTotal);
+
+          function applyPlanToForm(){
+            const pid = selectPlan.value;
+            const p = plansMap[pid];
+            if (p && !existing){
+              serviceNameInput.value = p.name;
+              // default cost: split unknown; set total default, keep parts/labor 0
+              if (p.default_cost_usd && Number(p.default_cost_usd) > 0){
+                partsInput.value = "0";
+                laborInput.value = "0";
+                totalInput.value = Number(p.default_cost_usd).toFixed(2);
+              }
+            }
+          }
+          selectPlan.addEventListener("change", applyPlanToForm);
+          applyPlanToForm();
+
+          logForm.addEventListener("submit", async (e)=>{
+            e.preventDefault();
+            const fd = new FormData(logForm);
+
+            const planId = String(fd.get("maintenance_plan_id")||"");
+            const p = plansMap[planId];
+            const vehicleId = String(fd.get("maintenance_plan_id")? p?.vehicle_id || "" : "");
+
+            const mileage = parseIntSafe(fd.get("mileage_at_service_miles"));
+            if (mileage == null || mileage < 0){
+              toast("Please enter a valid mileage.", "danger"); return;
+            }
+
+            const parts_cost_usd = parseMoney(fd.get("parts_cost_usd")) ?? 0;
+            const labor_cost_usd = parseMoney(fd.get("labor_cost_usd")) ?? 0;
+            const total_cost_usd = parseMoney(fd.get("total_cost_usd")) ?? (parts_cost_usd + labor_cost_usd);
+
+            const performed_at = String(fd.get("performed_at")||nowISO());
+            const notes = String(fd.get("notes")||"").trim();
+
+            if (!vehicleId){
+              toast("Plan missing vehicle mapping.", "danger"); return;
+            }
+
+            let receipt_url = existing?.receipt_url ?? null;
+            const file = fd.get("receipt_file");
+            try{
+              // Upload receipt to Supabase Storage (optional)
+              if (file && file.size > 0){
+                const bucket = "receipts";
+                const fileExt = (file.name.split(".").pop() || "jpg").toLowerCase();
+                const path = `${state.user.id}/${existing?.id || "new"}-${Date.now()}.${fileExt}`;
+                const { data: upData, error: upErr } = await supabase.storage
+                  .from(bucket)
+                  .upload(path, file, { upsert: true, contentType: file.type });
+                if (upErr) throw upErr;
+                const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+                receipt_url = urlData.publicUrl;
+              }
+            }catch(err){
+              toast("Receipt upload failed: " + err.message, "danger");
+              // continue without receipt
+            }
+
+            const payload = {
+              user_id: state.user.id,
+              vehicle_id: vehicleId,
+              maintenance_plan_id: planId,
+              service_name: String(fd.get("service_name")||p?.name||"").trim(),
+              parts_cost_usd: Number(parts_cost_usd),
+              labor_cost_usd: Number(labor_cost_usd),
+              total_cost_usd: Number(total_cost_usd),
+              performed_at,
+              mileage_at_service_miles: Number(mileage),
+              notes,
+              receipt_url: receipt_url
+            };
+
+            try{
+              if (existing){
+                const { error } = await supabase.from("maintenance_logs").update(payload).eq("id", existing.id);
+                if (error) throw error;
+                toast("Service updated", "ok");
+              } else {
+                const { data, error } = await supabase.from("maintenance_logs").insert(payload).select().single();
+                if (error) throw error;
+                // optionally update vehicle current odometer to mileage if higher
+                const { data: vehData } = await supabase.from("vehicles").select("*").eq("id", vehicleId).single();
+                const cur = Number(vehData?.current_odometer_miles ?? 0);
+                if (mileage > cur){
+                  await supabase.from("vehicles").update({ current_odometer_miles: mileage }).eq("id", vehicleId);
+                }
+                toast("Service created", "ok");
+              }
+              modal.remove();
+              renderPage();
+            }catch(err){
+              toast("Error: "+err.message, "danger");
+            }
+          });
+        }
+
+        document.getElementById("addLogBtn").onclick = ()=>openLogModal(null);
+
+        list.addEventListener("click", async (e)=>{
+          const btn = e.target.closest("button[data-action]");
+          if (!btn) return;
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+
+          if (action==="edit"){
+            const { data } = await supabase.from("maintenance_logs").select("*").eq("id", id).single();
+            openLogModal(data);
+          } else if (action==="del"){
+            if (!confirm("Delete this service log?")) return;
+            try{
+              const { error } = await supabase.from("maintenance_logs").delete().eq("id", id);
+              if (error) throw error;
+              toast("Service deleted", "ok");
+              renderPage();
+            }catch(err){
+              toast("Delete failed: "+err.message, "danger");
+            }
+          }
+        });
+
+      } else if (state.page === "reminders"){
+        // show computed reminders
+        const entries = plans.map(p=>{
+          const v = vehiclesById[p.vehicle_id];
+          const due = computeDue(p, v, logs);
+          return { plan:p, vehicle:v, ...due };
+        });
+
+        const pending = entries.slice().sort((a,b)=>{
+          const score = (e)=> e.status==="danger"?0 : e.status==="warn"?1 : 2;
+          const sa=score(a), sb=score(b);
+          if (sa!==sb) return sa-sb;
+          const da = a.dueDate ? a.dueDate : "9999-12-31";
+          const db = b.dueDate ? b.dueDate : "9999-12-31";
+          return da.localeCompare(db);
+        });
+
+        els.mainViewContent.innerHTML = `
+          <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+            <div>
+              <div class="kpi-label">Reminders (miles + date)</div>
+              <div class="small muted">Overdue / due soon based on your last logged service.</div>
+            </div>
+            <button class="btn" type="button" id="refreshBtn">Refresh</button>
+          </div>
+
+          <div class="row" style="margin-bottom:12px;">
+            <span class="pill"><span class="dot danger"></span>Overdue: <b>${pending.filter(x=>x.status==="danger").length}</b></span>
+            <span class="pill"><span class="dot warn"></span>Due soon: <b>${pending.filter(x=>x.status==="warn").length}</b></span>
+            <span class="pill"><span class="dot ok"></span>OK: <b>${pending.filter(x=>x.status==="ok").length}</b></span>
+          </div>
+
+          <div id="remList"></div>
+        `;
+
+        document.getElementById("refreshBtn").onclick = ()=>renderPage();
+
+        const remList = document.getElementById("remList");
+        remList.innerHTML = `
+          ${pending.length ? pending.map(e=>{
+            const vName = `${e.vehicle?.make_model_year ?? "Vehicle"}${e.vehicle?.label ? ` (${e.vehicle.label})`:""}`;
+            const dueMilesText = e.dueMiles != null ? `Due by miles: <b>${Math.round(e.dueMiles).toLocaleString()} mi</b>` : "Due by miles: —";
+            const dueDateText = e.dueDate ? `Due by date: <b>${esc(e.dueDate)}</b>` : "Due by date: —";
+            const used = e.milesProgress;
+            let progressHTML = "";
+            if (used != null && Number.isFinite(used)){
+              const pct = Math.max(0, Math.min(1, used))*100;
+              const klass = (e.status==="danger") ? "danger" : (e.status==="warn") ? "warn" : "";
+              progressHTML = `
+                <div class="small muted" style="margin-top:8px;">
+                  Miles progress: <b>${Math.round(Math.max(0, used)*100)}%</b>
+                </div>
+                <div class="progress">
+                  <div class="bar ${klass}" style="width:${pct}%"></div>
+                </div>
+              `;
+            }
+            return `
+              <div style="padding:12px; border:1px solid var(--border); border-radius:14px; margin-bottom:10px; background: rgba(2,6,23,.015);">
+                <div class="row">
+                  <div style="font-weight:900;">${esc(e.plan.name)}</div>
+                  <div class="right">${formatDueLabel(e.status, e.status==="danger"?"Overdue": e.status==="warn" ? "Due soon" : "OK")}</div>
+                </div>
+                <div class="small muted" style="margin-top:4px;">Vehicle: ${esc(vName)}</div>
+                <div class="small" style="margin-top:6px;">${dueMilesText}</div>
+                <div class="small" style="margin-top:4px;">${dueDateText}</div>
+                ${progressHTML}
+                ${e.warnings?.length ? `<div class="small muted" style="margin-top:8px;">Alerts: ${esc(e.warnings.join(", "))}</div>` : ""}
+              </div>
+            `;
+          }).join("") : `<div class="notice">No plans yet.</div>`}
+        `;
+      } else if (state.page === "reports"){
+        // Basic chart + CSV export
+        els.mainViewContent.innerHTML = `
+          <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+            <div>
+              <div class="kpi-label">Reports</div>
+              <div class="small muted">Charts from your logged services. Export to CSV (your own data only).</div>
+            </div>
+            <div class="row">
+              <button class="btn" id="exportCsvBtn" type="button">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card wide">
+              <div class="kpi-label">Income vs Expenses (not used)</div>
+              <div class="small muted">This app focuses on maintenance cost; showing cost over time instead.</div>
+              <div style="margin-top:10px;">
+                <canvas id="trendChart" height="140"></canvas>
+              </div>
+            </div>
+            <div class="card wide">
+              <div class="kpi-label">Cost by maintenance plan</div>
+              <div style="margin-top:10px;">
+                <canvas id="byPlanChart" height="140"></canvas>
+              </div>
+            </div>
+            <div class="card full">
+              <div class="kpi-label">Logged services table</div>
+              <div class="small muted" style="margin-top:6px;">Showing up to 200 latest logs.</div>
+              <div style="margin-top:10px; overflow:auto;">
+                <div style="max-width: 100%;">
+                  <table class="table" style="min-width:860px;">
+                    <thead><tr>
+                      <th>Date</th>
+                      <th>Vehicle</th>
+                      <th>Service</th>
+                      <th>Mileage</th>
+                      <th>Parts</th>
+                      <th>Labor</th>
+                      <th>Total</th>
+                      <th>Notes</th>
+                    </tr></thead>
+                    <tbody>
+                      ${logs.slice(0,200).map(l=>{
+                        const v = vehiclesById[l.vehicle_id];
+                        return `
+                          <tr>
+                            <td>${esc(l.performed_at || "")}</td>
+                            <td class="small muted">${esc(v?.make_model_year ?? "")}</td>
+                            <td><b>${esc(l.service_name || "")}</b></td>
+                            <td>${esc(l.mileage_at_service_miles ?? "")} mi</td>
+                            <td>$${money(l.parts_cost_usd ?? 0)}</td>
+                            <td>$${money(l.labor_cost_usd ?? 0)}</td>
+                            <td><b>$${money(l.total_cost_usd ?? 0)}</b></td>
+                            <td class="small muted">${esc(l.notes ?? "")}</td>
+                          </tr>
+                        `;
+                      }).join("")}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const { default: ChartModule } = await import("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js");
+
+        const trendCanvas = document.getElementById("trendChart");
+        const byPlanCanvas = document.getElementById("byPlanChart");
+
+        // Trend: last 10 services costs
+        const last = logs.slice().sort((a,b)=>(b.performed_at||"").localeCompare(a.performed_at||"")).slice(0,10).reverse();
+        const labels = last.map(l => (l.performed_at||"").slice(5,10));
+        const values = last.map(l => Number(l.total_cost_usd ?? 0));
+
+        new ChartModule(trendCanvas, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              label: "Cost (USD)",
+              data: values,
+              borderColor: "rgba(29,78,216,1)",
+              backgroundColor: "rgba(59,130,246,.15)",
+              tension: 0.25,
+              fill: true,
+              pointRadius: 4
+            }]
+          },
+          options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+        });
+
+        // Pie or bar by plan
+        const planMap = Object.fromEntries(plans.map(p=>[p.id,p.name]));
+        const costByPlan = {};
+        for (const l of logs){
+          const name = planMap[l.maintenance_plan_id] || "Unknown";
+          costByPlan[name] = (costByPlan[name] || 0) + Number(l.total_cost_usd ?? 0);
+        }
+        const top = Object.entries(costByPlan).sort((a,b)=>b[1]-a[1]).slice(0,6);
+        const pieLabels = top.map(x=>x[0]);
+        const pieValues = top.map(x=>Number(x[1].toFixed(2)));
+
+        new ChartModule(byPlanCanvas, {
+          type: "bar",
+          data: {
+            labels: pieLabels,
+            datasets: [{ label:"Cost", data: pieValues, backgroundColor:"rgba(34,197,94,.35)", borderColor:"rgba(21,128,61,1)", borderWidth:1 }]
+          },
+          options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>"$"+v } } } }
+        });
+
+        // CSV export with CSV injection protection
+        function csvEscape(value){
+          const s = String(value ?? "");
+          // prevent formula injection
+          if (/^[=+\-@]/.test(s)) return "'" + s;
+          const escaped = s.replace(/"/g,'""');
+          return `"${escaped}"`;
+        }
+
+        document.getElementById("exportCsvBtn").onclick = ()=>{
+          const header = ["performed_at","vehicle","service_name","mileage_at_service_miles","parts_cost_usd","labor_cost_usd","total_cost_usd","notes","receipt_url"];
+          const rows = logs.map(l=>{
+            const v = vehiclesById[l.vehicle_id];
+            return [
+              l.performed_at ?? "",
+              v?.make_model_year ?? "",
+              l.service_name ?? "",
+              l.mileage_at_service_miles ?? "",
+              l.parts_cost_usd ?? 0,
+              l.labor_cost_usd ?? 0,
+              l.total_cost_usd ?? 0,
+              l.notes ?? "",
+              l.receipt_url ?? ""
+            ].map(csvEscape).join(",");
+          });
+          const csv = header.join(",") + "\n" + rows.join("\n");
+          const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "dailybudget_maintenance_export.csv";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          toast("CSV exported", "ok");
+        };
+
+      } else if (state.page === "settings"){
+        els.mainViewContent.innerHTML = `
+          <div class="grid">
+            <div class="card wide">
+              <div class="kpi-label">Data & security</div>
+              <div style="margin-top:10px;" class="small muted" >
+                <b>Important:</b> This frontend is public (GitHub Pages). Your financial/vehicle data is protected by Supabase Auth + RLS.
+                Don’t put service-role keys in index.html.
+              </div>
+              <div class="notice warn" style="margin-top:12px;">
+                This demo stores receipts as public URLs for simplicity. You can tighten storage security later (recommended).
+              </div>
+              <div class="row" style="margin-top:12px;">
+                <button class="btn" id="exportAllBtn" type="button">Export my data (JSON)</button>
+              </div>
+              <div class="small muted" style="margin-top:10px;">
+                Exports your own vehicles/plans/logs using Supabase client calls.
+              </div>
+            </div>
+            <div class="card wide">
+              <div class="kpi-label">Demo & reset</div>
+              <div style="margin-top:10px;" class="small muted">
+                Optional: clear your data (vehicles → plans → logs cascade depends on your schema).
+              </div>
+              <div class="row" style="margin-top:12px;">
+                <button class="btn danger" id="dangerClearBtn" type="button">Delete all my maintenance data</button>
+              </div>
+              <div class="small muted" style="margin-top:10px;">
+                This cannot be undone.
+              </div>
+            </div>
+            <div class="card full">
+              <div class="kpi-label">Your current user</div>
+              <div class="small muted" style="margin-top:10px;" id="userInfo"></div>
+            </div>
+          </div>
+        `;
+
+        const userInfo = document.getElementById("userInfo");
+        userInfo.innerHTML = `
+          <div class="small muted"><b>User ID:</b> ${esc(state.user.id)}</div>
+          <div class="small muted"><b>Email:</b> ${esc(state.user.email || "")}</div>
+        `;
+
+        document.getElementById("exportAllBtn").onclick = async ()=>{
+          try{
+            const vehicles = await fetchVehicles();
+            const plans = await fetchPlans();
+            const logs = await fetchLogs();
+            const payload = { exported_at: new Date().toISOString(), vehicles, plans, logs };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "dailybudget_maintenance_data.json";
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            toast("JSON export ready", "ok");
+          }catch(err){
+            toast("Export failed: "+err.message, "danger");
+          }
+        };
+
+        document.getElementById("dangerClearBtn").onclick = async ()=>{
+          if (!confirm("Delete ALL your vehicles, plans, and logs? This cannot be undone.")) return;
+          try{
+            // delete logs -> plans -> vehicles (cascade should handle, but be explicit)
+            const { error: e1 } = await supabase.from("maintenance_logs").delete().eq("user_id", state.user.id);
+            if (e1) throw e1;
+            const { error: e2 } = await supabase.from("maintenance_plans").delete().eq("user_id", state.user.id);
+            if (e2) throw e2;
+            const { error: e3 } = await supabase.from("vehicles").delete().eq("user_id", state.user.id);
+            if (e3) throw e3;
+            toast("All data deleted", "ok");
+            renderPage();
+          }catch(err){
+            toast("Clear failed: "+err.message, "danger");
+          }
+        };
+      }
+    }
+
+    // Initialize app
+    async function initAuth(){
+      const themeStored = localStorage.getItem("db_theme");
+      if (themeStored === "dark") setTheme("dark");
+      else setTheme("light");
+
+      const { data: { subscription }, error } = supabase.auth.onAuthStateChange(async (_event, session)=>{
+        if (session?.user){
+          state.user = session.user;
+          showApp();
+          els.accountChip.textContent = `Signed in as ${session.user.email}`;
+          await renderPage();
+        } else {
+          state.user = null;
+          showAuth();
+          els.accountChip.textContent = "Signed out";
+          els.mainViewContent.innerHTML = "";
+        }
+      });
+
+      // Initial session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user){
+        state.user = session.user;
+        showApp();
+        await renderPage();
+      } else {
+        showAuth();
+      }
+    }
+
+    document.querySelectorAll(".nav button").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        state.page = btn.dataset.page;
+        await renderPage();
+      });
+    });
+
+    // Entry point
+    initAuth();
+  </script>
+</body>
+</html>
